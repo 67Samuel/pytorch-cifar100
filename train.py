@@ -27,9 +27,8 @@ import wandb
 from conf import settings
 from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR
 
-wandb.init(entity="67Samuel", project='Cifar100', name=args.run_name)
-
 def train(epoch):
+    wandb.init(entity="67Samuel", project='Cifar100', name=args.run_name)
 
     start = time.time()
     net.train()
