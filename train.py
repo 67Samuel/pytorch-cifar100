@@ -22,8 +22,12 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
+import wandb
+
 from conf import settings
 from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR
+
+wandb.init(entity="67Samuel", project='Cifar100', name=args.run_name)
 
 def train(epoch):
 
@@ -39,6 +43,7 @@ def train(epoch):
         optimizer.zero_grad()
         outputs = net(images)
         loss = loss_function(outputs, labels)
+        wandb.log({'loss':loss.item()})
         loss.backward()
         optimizer.step()
 
@@ -58,6 +63,7 @@ def train(epoch):
             trained_samples=batch_index * args.b + len(images),
             total_samples=len(cifar100_training_loader.dataset)
         ))
+        wandb.log({'epochs':epoch})
 
         #update training loss for each iteration
         writer.add_scalar('Train/loss', loss.item(), n_iter)
@@ -102,6 +108,7 @@ def eval_training(epoch):
         finish - start
     ))
     print()
+    wandb.log({'val loss':test_loss / len(cifar100_test_loader.dataset), 'accuracy':correct.float() / len(cifar100_test_loader.dataset)})
 
     #add informations to tensorboard
     writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test_loader.dataset), epoch)
@@ -117,6 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
+    parser.add_argument('-run_name', type=str, required=True, default='test', help='wandb run name')
     args = parser.parse_args()
 
     net = get_network(args)
